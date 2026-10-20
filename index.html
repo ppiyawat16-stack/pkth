@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="th" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>สัมผัสมนต์เสน่ห์ภูเก็ต - ไข่มุกแห่งอันดามัน (พร้อมแผนที่ & ระบบนำทาง)</title>
+    <!-- Google Fonts: Prompt -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Leaflet.js CSS & JS for Interactive Maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        deepOcean: '#0f52ba',
+                        skyBlue: '#00a8e8',
+                        cyanAccent: '#00c4cc',
+                        iceBlue: '#E0F7FA',
+                        softBackground: '#F8FAFC',
+                    },
+                    fontFamily: {
+                        sans: ['Prompt', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Prompt', sans-serif;
+            background-color: #F8FAFC;
+            color: #1E293B;
+        }
+        .glass-nav {
+            background: rgba(15, 82, 186, 0.93);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .hero-bg {
+            background: linear-gradient(180deg, rgba(15, 82, 186, 0.70) 0%, rgba(15, 82, 186, 0.88) 100%), 
+                        url('https://images.unsplash.com/photo-1589394815804-964ed0be2eb5?auto=format&fit=crop&w=1920&q=80') center/cover no-repeat;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #F1F5F9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #00a8e8;
+            border-radius: 9999px;
+        }
+        /* Leaflet Map Custom Style */
+        #phuket-map {
+            width: 100%;
+            height: 520px;
+            border-radius: 1.5rem;
+            z-index: 10;
+        }
+        .leaflet-popup-content-wrapper {
+            border-radius: 1rem;
+            padding: 4px;
+            font-family: 'Prompt', sans-serif;
+        }
+    </style>
+</head>
+<body class="antialiased flex flex-col min-h-screen">
+
+    <!-- 1. NAVIGATION BAR -->
+    <header class="sticky top-0 z-50 glass-nav text-white shadow-md transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <!-- Logo -->
+                <a href="#" class="flex items-center space-x-3 group">
+                    <div class="w-10 h-10 rounded-full bg-skyBlue flex items-center justify-center text-white shadow-lg group-hover:scale-105 transition-transform">
+                        <i class="fa-solid fa-umbrella-beach text-xl"></i>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="font-bold text-xl leading-tight tracking-wide">สัมผัสมนต์เสน่ห์ภูเก็ต</span>
+                        <span class="text-xs text-cyan-200 font-light">Phuket Pearl of Andaman</span>
+                    </div>
+                </a>
+
+                <!-- Desktop Menu -->
+                <nav class="hidden lg:flex items-center space-x-6 text-sm font-medium">
+                    <a href="#hero" class="hover:text-cyanAccent transition-colors py-1 border-b-2 border-transparent hover:border-cyanAccent">หน้าแรก</a>
+                    <a href="#destinations" class="hover:text-cyanAccent transition-colors py-1 border-b-2 border-transparent hover:border-cyanAccent">สถานที่ท่องเที่ยว</a>
+                    <a href="#map-section" class="hover:text-cyanAccent transition-colors py-1 border-b-2 border-transparent hover:border-cyanAccent flex items-center gap-1.5"><i class="fa-solid fa-map text-cyanAccent"></i> แผนที่ & เส้นทาง</a>
+                    <a href="#food" class="hover:text-cyanAccent transition-colors py-1 border-b-2 border-transparent hover:border-cyanAccent">อาหารขึ้นชื่อ</a>
+                    <a href="#festivals" class="hover:text-cyanAccent transition-colors py-1 border-b-2 border-transparent hover:border-cyanAccent">เทศกาล</a>
+                    <a href="#planner" class="hover:text-cyanAccent transition-colors py-1 border-b-2 border-transparent hover:border-cyanAccent">วางแผนเที่ยว</a>
+                </nav>
+
+                <!-- CTA Button -->
+                <div class="hidden lg:flex items-center">
+                    <a href="#map-section" class="bg-gradient-to-r from-skyBlue to-cyanAccent hover:from-cyan-500 hover:to-blue-600 text-white font-medium px-5 py-2.5 rounded-full shadow-lg hover:shadow-cyan-500/30 transition-all flex items-center space-x-2 transform hover:-translate-y-0.5">
+                        <i class="fa-solid fa-route"></i>
+                        <span>ค้นหาเส้นทาง</span>
+                    </a>
+                </div>
+
+                <!-- Mobile Hamburger Button -->
+                <div class="lg:hidden flex items-center">
+                    <button id="mobile-menu-btn" class="p-2 rounded-md text-white hover:text-cyanAccent focus:outline-none" aria-label="Toggle Menu">
+                        <i class="fa-solid fa-bars text-2xl" id="menu-icon"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Dropdown -->
+        <div id="mobile-menu" class="hidden lg:hidden bg-deepOcean border-t border-cyanAccent/20 px-4 pt-2 pb-6 space-y-3 shadow-xl">
+            <a href="#hero" class="mobile-link block py-2 px-3 rounded-lg hover:bg-skyBlue/20 text-white">หน้าแรก</a>
+            <a href="#destinations" class="mobile-link block py-2 px-3 rounded-lg hover:bg-skyBlue/20 text-white">สถานที่ท่องเที่ยว</a>
+            <a href="#map-section" class="mobile-link block py-2 px-3 rounded-lg hover:bg-skyBlue/20 text-cyan-200 font-bold"><i class="fa-solid fa-map mr-2"></i>แผนที่ & เส้นทางเดินทาง</a>
+            <a href="#food" class="mobile-link block py-2 px-3 rounded-lg hover:bg-skyBlue/20 text-white">อาหารขึ้นชื่อ</a>
+            <a href="#festivals" class="mobile-link block py-2 px-3 rounded-lg hover:bg-skyBlue/20 text-white">เทศกาลน่าสนใจ</a>
+            <a href="#planner" class="mobile-link block py-2 px-3 rounded-lg hover:bg-skyBlue/20 text-white">วางแผนเที่ยว</a>
+            <a href="#map-section" class="mobile-link block w-full text-center bg-skyBlue text-white py-2.5 rounded-full font-medium shadow-md mt-2">
+                <i class="fa-solid fa-location-arrow mr-2"></i>นำทางไปสถานที่
+            </a>
+        </div>
+    </header>
+
+    <!-- 2. HERO SECTION -->
+    <section id="hero" class="relative hero-bg text-white py-24 lg:py-32 flex items-center justify-center">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 text-center">
+            <span class="inline-block bg-white/20 backdrop-blur-md text-cyan-200 px-4 py-1.5 rounded-full text-sm font-medium mb-4 border border-white/20">
+                ✨ วางแผนและเดินทางเที่ยวเกาะภูเก็ตอย่างมั่นใจ
+            </span>
+            <h1 class="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight mb-6 leading-tight">
+                สัมผัสมนต์เสน่ห์ภูเก็ต<br><span class="text-cyanAccent">พร้อมระบบแผนที่นำทางแบบเรียลไทม์</span>
+            </h1>
+            <p class="text-base sm:text-lg lg:text-xl text-slate-100 max-w-3xl mx-auto mb-10 font-light leading-relaxed">
+                สำรวจสถานที่ท่องเที่ยว จุดชมวิว ชายหาดสวย อาหารพื้นเมือง พร้อมคำนวณเส้นทาง เวลา และค่าเดินทางในภูเก็ตได้ครบจบในที่เดียว
+            </p>
+
+            <!-- Quick Search Bar -->
+            <div class="max-w-2xl mx-auto mb-8">
+                <div class="bg-white p-2 rounded-2xl md:rounded-full shadow-2xl flex flex-col md:flex-row items-center gap-2">
+                    <div class="flex items-center pl-4 w-full text-gray-500">
+                        <i class="fa-solid fa-magnifying-glass text-skyBlue text-lg mr-3"></i>
+                        <input type="text" id="hero-search" placeholder="ค้นหาสถานที่, หาด, อาหารท้องถิ่น..." class="w-full text-slate-800 placeholder-slate-400 focus:outline-none text-sm md:text-base py-2">
+                    </div>
+                    <button onclick="executeHeroSearch()" class="w-full md:w-auto bg-deepOcean hover:bg-slate-800 text-white font-medium px-8 py-3 rounded-xl md:rounded-full transition-all shrink-0">
+                        ค้นหา
+                    </button>
+                </div>
+            </div>
+
+            <!-- CTA Buttons -->
+            <div class="flex flex-wrap justify-center gap-4">
+                <a href="#destinations" class="bg-skyBlue hover:bg-cyan-500 text-white font-medium px-7 py-3.5 rounded-full shadow-lg hover:shadow-cyan-500/50 transition-all flex items-center space-x-2">
+                    <i class="fa-solid fa-compass"></i>
+                    <span>สำรวจสถานที่</span>
+                </a>
+                <a href="#map-section" class="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/30 font-medium px-7 py-3.5 rounded-full transition-all flex items-center space-x-2">
+                    <i class="fa-solid fa-map-location-dot text-cyanAccent"></i>
+                    <span>เปิดแผนที่นำทาง</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. TOP DESTINATIONS -->
+    <section id="destinations" class="py-20 bg-slate-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-12">
+                <h2 class="text-xs font-bold text-skyBlue uppercase tracking-widest mb-2">TOP DESTINATIONS</h2>
+                <h3 class="text-3xl md:text-4xl font-bold text-deepOcean mb-4">สถานที่ท่องเที่ยวไฮไลท์</h3>
+                <p class="text-slate-600">สัมผัสจุดเช็คอินที่ไม่ควรพลาด และกดปุ่ม "ดูบนแผนที่" เพื่อคำนวณเส้นทางได้ทันที</p>
+            </div>
+
+            <!-- Category Filter Buttons -->
+            <div class="flex flex-wrap justify-center gap-2 mb-10">
+                <button onclick="filterDestinations('all')" class="filter-btn active bg-deepOcean text-white px-5 py-2 rounded-full text-sm font-medium shadow transition-all">ทั้งหมด</button>
+                <button onclick="filterDestinations('beach')" class="filter-btn bg-white hover:bg-iceBlue text-slate-700 px-5 py-2 rounded-full text-sm font-medium border border-slate-200 transition-all">ทะเล / เกาะ</button>
+                <button onclick="filterDestinations('oldtown')" class="filter-btn bg-white hover:bg-iceBlue text-slate-700 px-5 py-2 rounded-full text-sm font-medium border border-slate-200 transition-all">ย่านเมืองเก่า</button>
+                <button onclick="filterDestinations('viewpoint')" class="filter-btn bg-white hover:bg-iceBlue text-slate-700 px-5 py-2 rounded-full text-sm font-medium border border-slate-200 transition-all">จุดชมวิว</button>
+                <button onclick="filterDestinations('culture')" class="filter-btn bg-white hover:bg-iceBlue text-slate-700 px-5 py-2 rounded-full text-sm font-medium border border-slate-200 transition-all">วัฒนธรรม / วัด</button>
+            </div>
+
+            <!-- Destinations Grid -->
+            <div id="destinations-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Destination cards inserted dynamically via JavaScript -->
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. INTERACTIVE MAP & ROUTING SECTION (NEW FEATURE) -->
+    <section id="map-section" class="py-20 bg-white border-y border-slate-200 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-12">
+                <span class="bg-cyan-100 text-deepOcean text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">INTERACTIVE MAP & DIRECTIONS</span>
+                <h3 class="text-3xl md:text-4xl font-bold text-deepOcean mt-3 mb-3">แผนที่ภูเก็ตและคำนวณเส้นทางเดินทาง</h3>
+                <p class="text-slate-600">คลิกที่หมุดสถานที่ หรือเลือกจุดเริ่มต้นและจุดหมายเพื่อดูระยะทาง ค่าโดยสาร และวิธีเดินทาง step-by-step</p>
+            </div>
+
+            <!-- Map Filter Toolbar -->
+            <div class="flex flex-wrap justify-between items-center gap-4 bg-slate-50 p-4 rounded-2xl mb-6 border border-slate-200">
+                <div class="flex items-center space-x-2 text-sm font-semibold text-slate-700">
+                    <i class="fa-solid fa-filter text-skyBlue"></i>
+                    <span>กรองหมุดบนแผนที่:</span>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="filterMapMarkers('all')" class="map-filter-btn bg-deepOcean text-white text-xs px-3 py-1.5 rounded-lg transition-all">ทั้งหมด</button>
+                    <button onclick="filterMapMarkers('beach')" class="map-filter-btn bg-white text-slate-600 border border-slate-200 text-xs px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-all">🏖️ ชายหาด</button>
+                    <button onclick="filterMapMarkers('oldtown')" class="map-filter-btn bg-white text-slate-600 border border-slate-200 text-xs px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-all">🏛️ เมืองเก่า/วัด</button>
+                    <button onclick="filterMapMarkers('viewpoint')" class="map-filter-btn bg-white text-slate-600 border border-slate-200 text-xs px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-all">🌅 จุดชมวิว</button>
+                    <button onclick="filterMapMarkers('food')" class="map-filter-btn bg-white text-slate-600 border border-slate-200 text-xs px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-all">🍜 ร้านอาหาร</button>
+                </div>
+            </div>
+
+            <!-- Map & Directions Generator Layout -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                
+                <!-- Interactive Leaflet Map Container -->
+                <div class="lg:col-span-7 bg-slate-100 rounded-3xl p-2 shadow-inner border border-slate-200">
+                    <div id="phuket-map"></div>
+                </div>
+
+                <!-- Routing & Directions Generator Panel -->
+                <div class="lg:col-span-5 bg-slate-50 p-6 md:p-8 rounded-3xl border border-slate-200 shadow-lg space-y-5">
+                    <div class="flex items-center space-x-3 border-b border-slate-200 pb-3">
+                        <div class="w-10 h-10 rounded-2xl bg-deepOcean text-white flex items-center justify-center text-lg">
+                            <i class="fa-solid fa-route"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-slate-800 text-lg">คำนวณเส้นทางเดินทาง</h4>
+                            <p class="text-xs text-slate-500">เลือกจุดเริ่มต้นและจุดหมายปลายทาง</p>
+                        </div>
+                    </div>
+
+                    <!-- Origin Select -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">จุดเริ่มต้น (Origin)</label>
+                        <select id="route-start" class="w-full bg-white text-slate-800 rounded-xl px-3 py-2.5 border border-slate-300 focus:ring-2 focus:ring-skyBlue focus:outline-none text-sm">
+                            <option value="airport">✈️ สนามบินนานาชาติภูเก็ต (HKT)</option>
+                            <option value="oldtown" selected>🏛️ ตัวเมืองภูเก็ต / ย่านเมืองเก่า</option>
+                            <option value="patong">🏖️ หาดป่าตอง (Patong Beach)</option>
+                            <option value="rawai">⛵ หาดราไวย์ / ท่าเรือ</option>
+                        </select>
+                    </div>
+
+                    <!-- Destination Select -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">จุดหมายปลายทาง (Destination)</label>
+                        <select id="route-end" class="w-full bg-white text-slate-800 rounded-xl px-3 py-2.5 border border-slate-300 focus:ring-2 focus:ring-skyBlue focus:outline-none text-sm">
+                            <option value="promthep" selected>🌅 แหลมพรหมเทพ</option>
+                            <option value="patong">🏖️ หาดป่าตอง</option>
+                            <option value="oldtown">🏛️ ย่านเมืองเก่าภูเก็ต</option>
+                            <option value="wat_chalong">🛕 วัดไชยธาราราม (วัดฉลอง)</option>
+                            <option value="karon_view">📷 จุดชมวิวสามหาด</option>
+                            <option value="racha_pier">🚤 ท่าเรือฉลอง (ไปเกาะราชา)</option>
+                        </select>
+                    </div>
+
+                    <!-- Travel Mode Select -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">รูปแบบการเดินทาง (Vehicle)</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label class="flex items-center p-2.5 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-skyBlue">
+                                <input type="radio" name="travel-mode" value="car" checked class="text-skyBlue focus:ring-skyBlue">
+                                <span class="ml-2 text-xs font-medium text-slate-700"><i class="fa-solid fa-car text-skyBlue mr-1"></i> รถยนต์ / Grab</span>
+                            </label>
+                            <label class="flex items-center p-2.5 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-skyBlue">
+                                <input type="radio" name="travel-mode" value="bike" class="text-skyBlue focus:ring-skyBlue">
+                                <span class="ml-2 text-xs font-medium text-slate-700"><i class="fa-solid fa-motorcycle text-amber-500 mr-1"></i> มอเตอร์ไซค์</span>
+                            </label>
+                            <label class="flex items-center p-2.5 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-skyBlue">
+                                <input type="radio" name="travel-mode" value="smartbus" class="text-skyBlue focus:ring-skyBlue">
+                                <span class="ml-2 text-xs font-medium text-slate-700"><i class="fa-solid fa-bus text-blue-600 mr-1"></i> Smart Bus</span>
+                            </label>
+                            <label class="flex items-center p-2.5 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-skyBlue">
+                                <input type="radio" name="travel-mode" value="songthaew" class="text-skyBlue focus:ring-skyBlue">
+                                <span class="ml-2 text-xs font-medium text-slate-700"><i class="fa-solid fa-van-shuttle text-emerald-600 mr-1"></i> สองแถวโพท้อง</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <button onclick="calculateRoute()" class="w-full bg-deepOcean hover:bg-slate-800 text-white font-bold py-3 rounded-xl shadow-md transition-all flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-calculator"></i>
+                        <span>คำนวณระยะทาง & ค่าเดินทาง</span>
+                    </button>
+
+                    <!-- Route Result Box -->
+                    <div id="route-result" class="bg-white p-4 rounded-2xl border border-slate-200 space-y-3">
+                        <!-- Result populated via JS -->
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. PHUKET CULINARY & LOCAL FOOD -->
+    <section id="food" class="py-20 bg-slate-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-12">
+                <h2 class="text-xs font-bold text-skyBlue uppercase tracking-widest mb-2">GASTRONOMY CITY</h2>
+                <h3 class="text-3xl md:text-4xl font-bold text-deepOcean mb-4">อาหารและสตรีทฟู้ดขึ้นชื่อ</h3>
+                <p class="text-slate-600">ลิ้มลองความอร่อยแบบฉบับเพอรานากัน ภูเก็ตได้รับเลือกให้เป็นเมืองสร้างสรรค์ด้านวิทยาการอาหารจาก UNESCO</p>
+            </div>
+
+            <!-- Food Interactive Component -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center bg-iceBlue/40 p-6 md:p-10 rounded-3xl border border-cyan-100">
+                <!-- Left Menu Tabs -->
+                <div class="lg:col-span-5 space-y-3" id="food-tab-list">
+                    <!-- Dynamic Food Tabs -->
+                </div>
+
+                <!-- Right Display Card -->
+                <div class="lg:col-span-7 bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-slate-100" id="food-display-card">
+                    <!-- Dynamic Food Content -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 6. FESTIVALS & CULTURE -->
+    <section id="festivals" class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <h2 class="text-xs font-bold text-skyBlue uppercase tracking-widest mb-2">CULTURE & TRADITIONS</h2>
+                <h3 class="text-3xl md:text-4xl font-bold text-deepOcean mb-4">เทศกาลและวัฒนธรรมน่าสนใจ</h3>
+                <p class="text-slate-600">ร่วมสัมผัสประเพณีอันทรงคุณค่าที่สืบทอดกันมาอย่างยาวนานของชาวภูเก็ต</p>
+            </div>
+
+            <!-- Festival Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Event 1 -->
+                <div class="bg-slate-50 rounded-2xl p-6 shadow-md border border-slate-100 hover:shadow-xl transition-all relative overflow-hidden flex flex-col">
+                    <div class="absolute top-0 right-0 bg-deepOcean text-white text-xs px-4 py-1.5 rounded-bl-xl font-medium">
+                        ต.ค. ของทุกปี
+                    </div>
+                    <div class="w-12 h-12 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center mb-6 text-xl">
+                        <i class="fa-solid fa-fire"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-slate-800 mb-2">เทศกาลกินเจภูเก็ต (ผ่อต่อ)</h4>
+                    <p class="text-slate-600 text-sm mb-4 leading-relaxed flex-grow">
+                        ประเพณีถือศีลกินผัก 9 วันสุดยิ่งใหญ่ มีพิธีลุยไฟและขบวนม้าทรงชำระล้างสิ่งอัปมงคลตามความเชื่อไทย-จีน
+                    </p>
+                    <div class="bg-white p-3 rounded-xl border border-slate-100 text-xs text-slate-500 space-y-1">
+                        <div><strong class="text-slate-700">ไฮไลท์:</strong> ขบวนแห่ม้าทรง, พิธีลุยไฟศาลเจ้า</div>
+                        <div><strong class="text-slate-700">ข้อปฏิบัติ:</strong> แต่งกายชุดขาว, ละเว้นเนื้อสัตว์</div>
+                    </div>
+                </div>
+
+                <!-- Event 2 -->
+                <div class="bg-slate-50 rounded-2xl p-6 shadow-md border border-slate-100 hover:shadow-xl transition-all relative overflow-hidden flex flex-col">
+                    <div class="absolute top-0 right-0 bg-deepOcean text-white text-xs px-4 py-1.5 rounded-bl-xl font-medium">
+                        ม.ค. - ก.พ.
+                    </div>
+                    <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center mb-6 text-xl">
+                        <i class="fa-solid fa-lantern-concave"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-slate-800 mb-2">ตรุษจีน - ย่านเมืองเก่า</h4>
+                    <p class="text-slate-600 text-sm mb-4 leading-relaxed flex-grow">
+                        งานย้อนอดีตเมืองภูเก็ต ประดับประดาโคมไฟสีแดงทั่วถนนถลาง มีการแสดงเชิดสิงโต การแต่งกายชุดบาบ๋า-เพอรานากัน
+                    </p>
+                    <div class="bg-white p-3 rounded-xl border border-slate-100 text-xs text-slate-500 space-y-1">
+                        <div><strong class="text-slate-700">ไฮไลท์:</strong> ถนนคนเดินโคมแดง, การแสดงวัฒนธรรม</div>
+                        <div><strong class="text-slate-700">ข้อปฏิบัติ:</strong> ถ่ายรูปชุดเพอรานากัน local style</div>
+                    </div>
+                </div>
+
+                <!-- Event 3 -->
+                <div class="bg-slate-50 rounded-2xl p-6 shadow-md border border-slate-100 hover:shadow-xl transition-all relative overflow-hidden flex flex-col">
+                    <div class="absolute top-0 right-0 bg-deepOcean text-white text-xs px-4 py-1.5 rounded-bl-xl font-medium">
+                        พ.ย. ของทุกปี
+                    </div>
+                    <div class="w-12 h-12 bg-blue-100 text-skyBlue rounded-2xl flex items-center justify-center mb-6 text-xl">
+                        <i class="fa-solid fa-water"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-slate-800 mb-2">ลอยกระทงริมหาด</h4>
+                    <p class="text-slate-600 text-sm mb-4 leading-relaxed flex-grow">
+                        สัมผัสบรรยากาศการลอยกระทงลงสู่ทะเลอันดามัน ณ หาดป่าตอง และหาดไนยาง ท่ามกลางแสงไฟและเสียงคลื่นกระทบฝั่ง
+                    </p>
+                    <div class="bg-white p-3 rounded-xl border border-slate-100 text-xs text-slate-500 space-y-1">
+                        <div><strong class="text-slate-700">ไฮไลท์:</strong> กระทงวัสดุธรรมชาติริมชายหาด</div>
+                        <div><strong class="text-slate-700">ข้อปฏิบัติ:</strong> ใช้กระทงย่อยสลายได้เพื่อรักษาสภาพแวดล้อม</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 7. INTERACTIVE TRIP PLANNER -->
+    <section id="planner" class="py-20 bg-deepOcean text-white relative overflow-hidden">
+        <div class="absolute -right-10 -bottom-10 w-96 h-96 bg-skyBlue/10 rounded-full blur-3xl"></div>
+        <div class="absolute -left-10 -top-10 w-96 h-96 bg-cyan-300/10 rounded-full blur-3xl"></div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="text-center max-w-3xl mx-auto mb-12">
+                <span class="inline-block bg-white/10 text-cyan-200 px-4 py-1 rounded-full text-xs font-semibold uppercase tracking-widest mb-3">SMART TRIP PLANNER</span>
+                <h3 class="text-3xl md:text-4xl font-bold mb-4">เครื่องมือออกแบบทริปภูเก็ตส่วนตัว</h3>
+                <p class="text-slate-200">เลือกรูปแบบที่คุณชอบ ระบบจะช่วยวางแผนการเดินทางรายวันพร้อมประมาณการค่าใช้จ่ายให้อัตโนมัติ</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                <!-- Control Form -->
+                <div class="lg:col-span-5 bg-white/10 backdrop-blur-md p-6 md:p-8 rounded-3xl border border-white/15 shadow-xl space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-200 mb-2">1. จำนวนวันเดินทาง</label>
+                        <select id="plan-days" class="w-full bg-white/20 text-white rounded-xl px-4 py-3 border border-white/30 focus:outline-none focus:ring-2 focus:ring-skyBlue text-sm">
+                            <option class="bg-slate-800 text-white" value="1">1 - 2 วัน (ทริปสั้นวันเดียว/สุดสัปดาห์)</option>
+                            <option class="bg-slate-800 text-white" value="3" selected>3 วัน 2 คืน (ทริปยอดนิยม)</option>
+                            <option class="bg-slate-800 text-white" value="4">4 วัน 3 คืน (ทริปเที่ยวเจาะลึก)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-slate-200 mb-2">2. สไตล์การท่องเที่ยวที่คุณชอบ</label>
+                        <select id="plan-style" class="w-full bg-white/20 text-white rounded-xl px-4 py-3 border border-white/30 focus:outline-none focus:ring-2 focus:ring-skyBlue text-sm">
+                            <option class="bg-slate-800 text-white" value="beach">🏖️ สายชิลล์ชายหาด & พักผ่อน</option>
+                            <option class="bg-slate-800 text-white" value="photographer">📸 สายถ่ายรูปย่านเมืองเก่า & คาเฟ่</option>
+                            <option class="bg-slate-800 text-white" value="foodie">🍜 สายกินแหลก ตะลุยสตรีทฟู้ด</option>
+                            <option class="bg-slate-800 text-white" value="adventure">🥽 สายลุย ดำน้ำ & เกาะสวรรค์</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-slate-200 mb-2">3. งบประมาณโดยประมาณ (บาท/คน ไม่รวมเที่ยวบิน)</label>
+                        <select id="plan-budget" class="w-full bg-white/20 text-white rounded-xl px-4 py-3 border border-white/30 focus:outline-none focus:ring-2 focus:ring-skyBlue text-sm">
+                            <option class="bg-slate-800 text-white" value="economy">ประหยัด (3,000 - 5,000 บาท)</option>
+                            <option class="bg-slate-800 text-white" value="moderate" selected>ปานกลาง (5,000 - 10,000 บาท)</option>
+                            <option class="bg-slate-800 text-white" value="luxury">พรีเมียม (10,000+ บาท)</option>
+                        </select>
+                    </div>
+
+                    <button onclick="generateTripPlan()" class="w-full bg-skyBlue hover:bg-cyan-400 text-white font-bold py-4 rounded-xl shadow-lg transition-all flex items-center justify-center space-x-2 text-base">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        <span>สร้างแผนการเดินทาง</span>
+                    </button>
+                </div>
+
+                <!-- Results Output -->
+                <div class="lg:col-span-7 bg-white text-slate-800 p-6 md:p-8 rounded-3xl shadow-2xl" id="trip-plan-result">
+                    <!-- Itinerary generated here -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 8. FOOTER SECTION -->
+    <footer class="bg-deepOcean text-white border-t border-skyBlue/20 pt-16 pb-8 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
+                <!-- Column 1: Brand -->
+                <div class="space-y-4">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-full bg-skyBlue flex items-center justify-center text-white shadow-lg">
+                            <i class="fa-solid fa-umbrella-beach text-xl"></i>
+                        </div>
+                        <span class="font-bold text-xl tracking-wide">สัมผัสมนต์เสน่ห์ภูเก็ต</span>
+                    </div>
+                    <p class="text-slate-200 text-sm leading-relaxed font-light">
+                        คู่มือท่องเที่ยวภูเก็ตแบบครบวงจร รวบรวมชายหาด ย่านเมืองเก่า แผนที่นำทางเรียลไทม์ และสตรีทฟู้ดที่ไม่ควรพลาด
+                    </p>
+                </div>
+
+                <!-- Column 2: Quick Links -->
+                <div>
+                    <h5 class="text-lg font-bold mb-4 border-b border-skyBlue/30 pb-2">ลิงก์ด่วน</h5>
+                    <ul class="space-y-2 text-sm text-slate-200">
+                        <li><a href="#destinations" class="hover:text-cyanAccent transition-colors">สถานที่ท่องเที่ยว</a></li>
+                        <li><a href="#map-section" class="hover:text-cyanAccent transition-colors">แผนที่ & คำนวณเส้นทาง</a></li>
+                        <li><a href="#food" class="hover:text-cyanAccent transition-colors">อาหารและสตรีทฟู้ด</a></li>
+                        <li><a href="#festivals" class="hover:text-cyanAccent transition-colors">เทศกาลประจำปี</a></li>
+                        <li><a href="#planner" class="hover:text-cyanAccent transition-colors">เครื่องมือวางแผนทริป</a></li>
+                    </ul>
+                </div>
+
+                <!-- Column 3: Contact & Social -->
+                <div>
+                    <h5 class="text-lg font-bold mb-4 border-b border-skyBlue/30 pb-2">ติดต่อและติดตาม</h5>
+                    <div class="space-y-3 text-sm text-slate-200 mb-4">
+                        <p class="flex items-center"><i class="fa-solid fa-envelope text-cyanAccent mr-3"></i> contact@phuketcharm.com</p>
+                        <p class="flex items-center"><i class="fa-solid fa-phone text-cyanAccent mr-3"></i> +66 (0) 76 123 456</p>
+                        <p class="flex items-center"><i class="fa-solid fa-location-dot text-cyanAccent mr-3"></i> อำเภอเมืองภูเก็ต จังหวัดภูเก็ต 83000</p>
+                    </div>
+                    <div class="flex space-x-3">
+                        <a href="#" class="w-9 h-9 rounded-full bg-white/10 hover:bg-skyBlue flex items-center justify-center transition-colors"><i class="fa-brands fa-facebook-f"></i></a>
+                        <a href="#" class="w-9 h-9 rounded-full bg-white/10 hover:bg-skyBlue flex items-center justify-center transition-colors"><i class="fa-brands fa-instagram"></i></a>
+                        <a href="#" class="w-9 h-9 rounded-full bg-white/10 hover:bg-skyBlue flex items-center justify-center transition-colors"><i class="fa-brands fa-youtube"></i></a>
+                    </div>
+                </div>
+
+                <!-- Column 4: Newsletter -->
+                <div>
+                    <h5 class="text-lg font-bold mb-4 border-b border-skyBlue/30 pb-2">รับจดหมายข่าว</h5>
+                    <p class="text-slate-200 text-sm mb-3 font-light">สมัครรับข้อมูลโปรโมชั่น และดีลเด็ดท่องเที่ยวภูเก็ตก่อนใคร</p>
+                    <form onsubmit="handleNewsletter(event)" class="space-y-2">
+                        <input type="email" required placeholder="อีเมลของคุณ..." class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-skyBlue">
+                        <button type="submit" class="w-full bg-skyBlue hover:bg-cyan-500 text-white font-medium py-2.5 rounded-xl text-sm transition-colors shadow">
+                            สมัครรับข้อมูล
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Copyright -->
+            <div class="border-t border-white/10 pt-6 text-center text-xs text-slate-300">
+                <p>&copy; 2026 สัมผัสมนต์เสน่ห์ภูเก็ต (Phuket Charm). All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- MODAL POPUP FOR DESTINATION DETAILS -->
+    <div id="destination-modal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-2xl w-full overflow-hidden shadow-2xl relative max-h-[90vh] flex flex-col">
+            <button onclick="closeModal()" class="absolute top-4 right-4 z-10 bg-black/40 hover:bg-black/70 text-white w-10 h-10 rounded-full flex items-center justify-center transition-all">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <div class="relative h-64 sm:h-72 shrink-0">
+                <img id="modal-image" src="" alt="" class="w-full h-full object-cover">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+                <div class="absolute bottom-4 left-6 right-6 text-white">
+                    <span id="modal-category" class="bg-skyBlue text-xs px-3 py-1 rounded-full font-medium mb-2 inline-block"></span>
+                    <h3 id="modal-title" class="text-2xl sm:text-3xl font-bold"></h3>
+                </div>
+            </div>
+            <div class="p-6 overflow-y-auto custom-scrollbar space-y-4">
+                <div class="flex items-center space-x-4 text-sm text-slate-500">
+                    <span class="text-amber-500 font-bold flex items-center"><i class="fa-solid fa-star mr-1"></i><span id="modal-rating"></span></span>
+                    <span>•</span>
+                    <span id="modal-location" class="flex items-center"><i class="fa-solid fa-location-dot mr-1 text-red-500"></i></span>
+                </div>
+                <p id="modal-description" class="text-slate-600 leading-relaxed text-sm sm:text-base"></p>
+                <div class="bg-iceBlue p-4 rounded-2xl border border-cyan-100 text-xs sm:text-sm text-slate-700">
+                    <h4 class="font-bold text-deepOcean mb-1"><i class="fa-solid fa-lightbulb mr-2 text-amber-500"></i>คำแนะนำเพิ่มเติม:</h4>
+                    <p id="modal-tips"></p>
+                </div>
+            </div>
+            <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-between items-center">
+                <button id="modal-map-btn" class="bg-skyBlue hover:bg-cyan-600 text-white px-5 py-2.5 rounded-full text-sm font-medium transition-colors flex items-center gap-2">
+                    <i class="fa-solid fa-map-location-dot"></i>
+                    <span>นำทางบนแผนที่</span>
+                </button>
+                <button onclick="closeModal()" class="bg-slate-200 text-slate-700 px-6 py-2.5 rounded-full text-sm font-medium hover:bg-slate-300 transition-colors">
+                    ปิด
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- DATA SOURCES WITH LAT/LNG FOR LEAFLET ---
+        const locationsData = [
+            {
+                id: 1,
+                name: 'แหลมพรหมเทพ',
+                category: 'viewpoint',
+                categoryLabel: 'จุดชมวิว',
+                rating: '4.9',
+                lat: 7.7623,
+                lng: 98.3053,
+                image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80',
+                shortDesc: 'จุดชมพระอาทิตย์ตกดินที่สวยงามและมีชื่อเสียงที่สุดในประเทศไทย',
+                fullDesc: 'แหลมพรหมเทพ เป็นแหลมที่อยู่ทางใต้สุดของเกาะภูเก็ต มีทัศนียภาพที่สวยงาม ยามเย็นนักท่องเที่ยวนิยมมารอชมพระอาทิตย์ตกดินลงสู่ทะเลอันดามัน',
+                tips: 'แนะนำให้ไปถึงก่อนเวลาพระอาทิตย์ตกประมาณ 1 ชั่วโมง (ช่วง 17.00 น.)'
+            },
+            {
+                id: 2,
+                name: 'ย่านเมืองเก่าภูเก็ต (Old Phuket Town)',
+                category: 'oldtown',
+                categoryLabel: 'ย่านเมืองเก่า',
+                rating: '4.8',
+                lat: 7.8841,
+                lng: 98.3892,
+                image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQELl_3NC1opsakB2RVsvrMrpPahfBMdrQxziJ2Z4jaiA&s=10',
+                shortDesc: 'สถาปัตยกรรมชิโน-โปรตุเกสอันทรงคุณค่า หลากสีสัน พร้อมคาเฟ่สุดเก๋',
+                fullDesc: 'ย่านเมืองเก่าภูเก็ต เต็มไปด้วยตึกอาคารสไตล์ชิโน-โปรตุเกสที่ผสมผสานศิลปะตะวันตกและตะวันออกเข้าด้วยกันอย่างลงตัว',
+                tips: 'ช่วงเย็นวันอาทิตย์จะมี "หลาดใหญ่" (ถนนคนเดินถนนถลาง)'
+            },
+            {
+                id: 3,
+                name: 'หาดป่าตอง',
+                category: 'beach',
+                categoryLabel: 'ทะเล / เกาะ',
+                rating: '4.7',
+                lat: 7.8963,
+                lng: 98.2965,
+                image: 'https://images.unsplash.com/photo-1537956965359-7573183d1f57?auto=format&fit=crop&w=800&q=80',
+                shortDesc: 'ชายหาดชื่อดังระดับโลก ศูนย์รวมกิจกรรมทางน้ำและยามค่ำคืน',
+                fullDesc: 'หาดป่าตอง มีชายหาดโค้งกว้างสายทรายขาวละเอียด ครบครันด้วยกิจกรรมทางน้ำ เช่น เจ็ตสกี พาราเซิลลิ่ง และซอยบางลา',
+                tips: 'หากชอบความสงบแนะนำโซนทิศเหนือของหาดป่าตอง'
+            },
+            {
+                id: 4,
+                name: 'ท่าเรือฉลอง (ไปเกาะราชา)',
+                category: 'beach',
+                categoryLabel: 'ทะเล / เกาะ',
+                rating: '4.8',
+                lat: 7.8211,
+                lng: 98.3582,
+                image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRJw-dGDOP-5AAw3y62XcVa_pNOoBlyrypLtdIxTgxRkg&s=10',
+                shortDesc: 'จุดลงเรือสปีดโบ๊ทไปเกาะราชาและเกาะเฮ น้ำใสสวรรค์ของนักดำน้ำ',
+                fullDesc: 'ท่าเรือหลักฝั่งตะวันออกเพื่อเดินทางไปยังเกาะราชาและเกาะเฮ น้ำทะเลใสสีฟ้าเทอร์ควอยซ์และแนวปะการังที่สมบูรณ์',
+                tips: 'เดินทางสปีดโบ๊ทเพียง 30 นาที ควรจองทัวร์ล่วงหน้า'
+            },
+            {
+                id: 5,
+                name: 'วัดไชยธาราราม (วัดฉลอง)',
+                category: 'culture',
+                categoryLabel: 'วัฒนธรรม / วัด',
+                rating: '4.8',
+                lat: 7.8466,
+                lng: 98.3371,
+                image: 'https://images.unsplash.com/photo-1563492065599-3520f775eeed?auto=format&fit=crop&w=800&q=80',
+                shortDesc: 'วัดคู่บ้านคู่เมืองภูเก็ต สักการะหลวงพ่อแช่มเพื่อความเป็นสิริมงคล',
+                fullDesc: 'วัดฉลอง เป็นวัดเก่าแก่ศักดิ์สิทธิ์ประจำจังหวัดภูเก็ต ประดิษฐานรูปหล่อหลวงพ่อแช่ม และพระมหาธาตุเจดีย์พระจอมไทยบารมีประกาศ',
+                tips: 'โปรดแต่งกายสุภาพ เรียบร้อยครอบคลุมไหล่และเข่า'
+            },
+            {
+                id: 6,
+                name: 'จุดชมวิวสามหาด (Karon Viewpoint)',
+                category: 'viewpoint',
+                categoryLabel: 'จุดชมวิว',
+                rating: '4.7',
+                lat: 7.7972,
+                lng: 98.3019,
+                image: 'https://images.unsplash.com/photo-1512100356356-de1b84283e18?auto=format&fit=crop&w=800&q=80',
+                shortDesc: 'ชมทัศนียภาพโค้งอ่าว 3 หาดสวยพร้อมกัน (หาดกะตะน้อย กะตะ และกะรน)',
+                fullDesc: 'จุดชมวิวขึ้นชื่อที่มองเห็นแนวชายหาดรูปพระจันทร์เสี้ยวต่อเนื่องกันถึง 3 หาด ในมุมมองพาโนรามาสุดสายตา',
+                tips: 'เหมาะสำหรับการแวะถ่ายรูปช่วงเช้าหรือบ่าย'
+            },
+            {
+                id: 7,
+                name: 'ร้านระย้า (อาหารพื้นเมือง)',
+                category: 'food',
+                categoryLabel: 'ร้านอาหาร',
+                rating: '4.9',
+                lat: 7.8860,
+                lng: 98.3899,
+                image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80',
+                shortDesc: 'ร้านอาหารเพอรานากันชื่อดัง เมนูเด็ดหมูฮ้องและแกงเนื้อปูใบชะพลู',
+                fullDesc: 'ร้านอาหารสไตล์บ้านโบราณชิโนโปรตุเกส บริการอาหารพื้นเมืองภูเก็ตรสชาติต้นตำรับแท้ๆ',
+                tips: 'ควรโทรจองโต๊ะล่วงหน้าช่วงวันหยุด'
+            }
+        ];
+
+        const foodData = [
+            {
+                id: 'moo-hong',
+                name: 'หมูฮ้อง',
+                type: 'ต้มเค็มหวานสไตล์ฮกเกี้ยน',
+                desc: 'หมูสามชั้นเคี่ยวกับซีอิ๊ว กระเทียม พริกไทย และเครื่องเทศสไตล์จีนจนเปื่อยนุ่มละลายในปาก',
+                location: 'ร้านระย้า, ร้านวันจันทร์ (ย่านเมืองเก่า)',
+                ingredients: 'หมูสามชั้น, กระเทียม, พริกไทยดำ, รากผักชี, ซีอิ๊วดำ',
+                lat: 7.8860, lng: 98.3899
+            },
+            {
+                id: 'hokkien-mee',
+                name: 'หมี่ฮกเกี้ยน',
+                type: 'ผัดบะหมี่เส้นใหญ่',
+                desc: 'เส้นหมี่เหลืองขนาดใหญ่ผัดซีอิ๊วแบบขลุกขลิก ใส่กุ้ง หมู ปลาหมึก และไข่ต้มยางมะตูม',
+                location: 'หมี่ต้นโพธิ์ (วงเวียนหอนาฬิกา)',
+                ingredients: 'บะหมี่เส้นใหญ่, กุ้งสด, หมูชิ้น, ไข่ไก่, ซีอิ๊วหมัก',
+                lat: 7.8831, lng: 98.3912
+            },
+            {
+                id: 'o-taw',
+                name: 'โอวต้าว',
+                type: 'สตรีทฟู้ดแป้งผัดหอยนางรม',
+                desc: 'อาหารพื้นเมืองแป้งนุ่มผัดกับหอยติบ เผือกต้มสุก เผ็ดร้อนด้วยพริกสด และโรยแคปหมูกรอบๆ',
+                location: 'โอวต้าวบางเหนียว',
+                ingredients: 'แป้งมัน, หอยติบ, เผือก, พริกตำ, แคปหมู',
+                lat: 7.8765, lng: 98.3930
+            }
+        ];
+
+        // --- GLOBAL MAP VARIABLES ---
+        let map;
+        let markersGroup;
+
+        // Initialize Leaflet Map
+        function initMap() {
+            // Phuket center coords
+            map = L.map('phuket-map').setView([7.8800, 98.3500], 11);
+
+            // OpenStreetMap Tiles
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            markersGroup = L.layerGroup().addTo(map);
+            renderMapMarkers('all');
+        }
+
+        // Render Map Markers
+        function renderMapMarkers(filterCategory = 'all') {
+            markersGroup.clearLayers();
+
+            locationsData.forEach(loc => {
+                if (filterCategory === 'all' || loc.category === filterCategory) {
+                    const googleNavUrl = `https://www.google.com/maps/dir/?api=1&destination=${loc.lat},${loc.lng}`;
+                    
+                    const popupContent = `
+                        <div class="text-slate-800 p-1 max-w-xs">
+                            <img src="${loc.image}" class="w-full h-24 object-cover rounded-lg mb-2">
+                            <h5 class="font-bold text-sm text-deepOcean">${loc.name}</h5>
+                            <p class="text-xs text-slate-500 mb-2">${loc.shortDesc}</p>
+                            <div class="flex gap-1">
+                                <a href="${googleNavUrl}" target="_blank" class="bg-skyBlue text-white text-xs px-2.5 py-1 rounded-md font-medium hover:bg-cyan-600 transition-colors inline-flex items-center gap-1">
+                                    <i class="fa-solid fa-location-arrow"></i> นำทาง
+                                </a>
+                                <button onclick="setAsRouteDestination(${loc.lat}, ${loc.lng}, '${loc.name}')" class="bg-deepOcean text-white text-xs px-2.5 py-1 rounded-md font-medium hover:bg-slate-800 transition-colors">
+                                    ปักหมุดจุดหมาย
+                                </button>
+                            </div>
+                        </div>
+                    `;
+
+                    const marker = L.marker([loc.lat, loc.lng])
+                        .bindPopup(popupContent);
+                    markersGroup.addLayer(marker);
+                }
+            });
+        }
+
+        function filterMapMarkers(cat) {
+            document.querySelectorAll('.map-filter-btn').forEach(b => {
+                b.className = 'map-filter-btn bg-white text-slate-600 border border-slate-200 text-xs px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-all';
+            });
+            event.target.className = 'map-filter-btn bg-deepOcean text-white text-xs px-3 py-1.5 rounded-lg transition-all';
+            renderMapMarkers(cat);
+        }
+
+        function focusOnLocation(lat, lng, zoom = 14) {
+            document.getElementById('map-section').scrollIntoView({ behavior: 'smooth' });
+            setTimeout(() => {
+                map.setView([lat, lng], zoom);
+                // Open related marker popup
+                markersGroup.eachLayer(layer => {
+                    const lLat = layer.getLatLng();
+                    if (Math.abs(lLat.lat - lat) < 0.001 && Math.abs(lLat.lng - lng) < 0.001) {
+                        layer.openPopup();
+                    }
+                });
+            }, 600);
+        }
+
+        // --- ROUTING & DIRECTIONS GENERATOR LOGIC ---
+        const presetCoords = {
+            airport: { name: 'สนามบินนานาชาติภูเก็ต', lat: 8.1132, lng: 98.3069 },
+            oldtown: { name: 'ย่านเมืองเก่าภูเก็ต', lat: 7.8841, lng: 98.3892 },
+            patong: { name: 'หาดป่าตอง', lat: 7.8963, lng: 98.2965 },
+            rawai: { name: 'หาดราไวย์', lat: 7.7792, lng: 98.3255 },
+            promthep: { name: 'แหลมพรหมเทพ', lat: 7.7623, lng: 98.3053 },
+            wat_chalong: { name: 'วัดฉลอง', lat: 7.8466, lng: 98.3371 },
+            karon_view: { name: 'จุดชมวิวสามหาด', lat: 7.7972, lng: 98.3019 },
+            racha_pier: { name: 'ท่าเรือฉลอง', lat: 7.8208, lng: 98.3556 }
+        };
+
+        function setAsRouteDestination(lat, lng, name) {
+            focusOnLocation(lat, lng);
+            calculateRouteWithCoords(lat, lng, name);
+        }
+
+        function calculateRoute() {
+            const startKey = document.getElementById('route-start').value;
+            const endKey = document.getElementById('route-end').value;
+            const startObj = presetCoords[startKey];
+            const endObj = presetCoords[endKey];
+
+            calculateRouteWithCoords(endObj.lat, endObj.lng, endObj.name, startObj);
+        }
+
+        function calculateRouteWithCoords(destLat, destLng, destName, startObjCustom = null) {
+            const startKey = document.getElementById('route-start').value;
+            const startObj = startObjCustom || presetCoords[startKey] || presetCoords.oldtown;
+            const mode = document.querySelector('input[name="travel-mode"]:checked').value;
+
+            // Distance calculation (Haversine formula approximation)
+            const R = 6371; // km
+            const dLat = (destLat - startObj.lat) * Math.PI / 180;
+            const dLon = (destLng - startObj.lng) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(startObj.lat * Math.PI / 180) * Math.cos(destLat * Math.PI / 180) *
+                      Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            const distance = (R * c * 1.35).toFixed(1); // multiplying by 1.35 for road detour approx
+
+            let speed = 40; // km/h
+            let costText = '';
+            let stepTip = '';
+
+            if (mode === 'car') {
+                speed = 45;
+                costText = `${Math.round(distance * 15 + 80)} - ${Math.round(distance * 22 + 120)} บาท (Grab/Taxi)`;
+                stepTip = 'ใช้ถนนสายหลัก 402 หรือ 4028 สะดวกที่สุดสำหรับการขับรถยนต์';
+            } else if (mode === 'bike') {
+                speed = 50;
+                costText = 'เช่าประมาณ 250-300 บาท/วัน (ค่าน้ำมัน ~50 บาท)';
+                stepTip = 'โปรดสวมหมวกนิรภัย และระมัดระวังทางโค้งลาดชันบริเวณเขาป่าตอง/กะรน';
+            } else if (mode === 'smartbus') {
+                speed = 30;
+                costText = '100 บาทตลอดสาย';
+                stepTip = 'ขึ้นที่ป้าย Phuket Smart Bus เลียบหาด รถออกทุกๆ 1 ชั่วโมง';
+            } else if (mode === 'songthaew') {
+                speed = 25;
+                costText = '30 - 50 บาท';
+                stepTip = 'รถสองแถวไม้สีฟ้า (โพท้อง) วิ่งให้บริการระหว่างตัวเมืองและหาดต่างๆ ถึง 18.00 น.';
+            }
+
+            const durationMinutes = Math.round((distance / speed) * 60 + 10);
+            const googleNavUrl = `https://www.google.com/maps/dir/?api=1&origin=${startObj.lat},${startObj.lng}&destination=${destLat},${destLng}`;
+
+            const resultBox = document.getElementById('route-result');
+            resultBox.innerHTML = `
+                <div class="space-y-3 text-xs sm:text-sm">
+                    <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                        <span class="text-slate-500">ระยะทางโดยประมาณ:</span>
+                        <span class="font-bold text-slate-800 text-base">${distance} กม.</span>
+                    </div>
+                    <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                        <span class="text-slate-500">เวลาเดินทางโดยประมาณ:</span>
+                        <span class="font-bold text-skyBlue text-base"><i class="fa-regular fa-clock mr-1"></i>~${durationMinutes} นาที</span>
+                    </div>
+                    <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                        <span class="text-slate-500">ค่าโดยสารประมาณ:</span>
+                        <span class="font-bold text-emerald-600 text-sm">${costText}</span>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-slate-600 text-xs">
+                        <strong><i class="fa-solid fa-circle-info text-skyBlue mr-1"></i>คำแนะนำ:</strong> ${stepTip}
+                    </div>
+                    <a href="${googleNavUrl}" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 rounded-xl transition-colors flex items-center justify-center space-x-2 text-xs sm:text-sm">
+                        <i class="fa-solid fa-map-location-dot"></i>
+                        <span>เปิดนำทางใน Google Maps Mobile</span>
+                    </a>
+                </div>
+            `;
+        }
+
+        // --- RENDER DESTINATIONS GRID ---
+        function renderDestinations(filter = 'all') {
+            const grid = document.getElementById('destinations-grid');
+            grid.innerHTML = '';
+
+            const filteredData = filter === 'all' 
+                ? locationsData.filter(item => item.category !== 'food')
+                : locationsData.filter(item => item.category === filter);
+
+            filteredData.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-3xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 border border-slate-100 flex flex-col transform hover:-translate-y-1';
+                card.innerHTML = `
+                    <div class="relative h-52 overflow-hidden group">
+                        <img src="${item.image}" alt="${item.name}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                        <span class="absolute top-4 left-4 bg-white/90 backdrop-blur-md text-deepOcean text-xs font-semibold px-3 py-1 rounded-full shadow">
+                            ${item.categoryLabel}
+                        </span>
+                        <div class="absolute bottom-3 right-3 bg-slate-900/80 backdrop-blur-md text-white text-xs px-2.5 py-1 rounded-lg flex items-center">
+                            <i class="fa-solid fa-star text-amber-400 mr-1"></i> ${item.rating}
+                        </div>
+                    </div>
+                    <div class="p-6 flex flex-col flex-grow justify-between space-y-4">
+                        <div>
+                            <h4 class="text-xl font-bold text-slate-800 mb-2">${item.name}</h4>
+                            <p class="text-slate-600 text-sm line-clamp-2 leading-relaxed">${item.shortDesc}</p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="openModal(${item.id})" class="bg-iceBlue hover:bg-skyBlue hover:text-white text-deepOcean font-medium py-2.5 rounded-xl text-xs transition-colors text-center">
+                                รายละเอียด
+                            </button>
+                            <button onclick="focusOnLocation(${item.lat}, ${item.lng})" class="bg-deepOcean hover:bg-slate-800 text-white font-medium py-2.5 rounded-xl text-xs transition-colors flex items-center justify-center space-x-1">
+                                <i class="fa-solid fa-map-pin text-cyanAccent"></i>
+                                <span>เส้นทางไป</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function filterDestinations(category) {
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active', 'bg-deepOcean', 'text-white');
+                btn.classList.add('bg-white', 'text-slate-700');
+            });
+            event.target.classList.add('active', 'bg-deepOcean', 'text-white');
+            event.target.classList.remove('bg-white', 'text-slate-700');
+            renderDestinations(category);
+        }
+
+        // --- MODAL FUNCTIONS ---
+        function openModal(id) {
+            const item = locationsData.find(d => d.id === id);
+            if (!item) return;
+
+            document.getElementById('modal-image').src = item.image;
+            document.getElementById('modal-category').innerText = item.categoryLabel;
+            document.getElementById('modal-title').innerText = item.name;
+            document.getElementById('modal-rating').innerText = item.rating;
+            document.getElementById('modal-location').innerText = 'ภูเก็ต, ประเทศไทย';
+            document.getElementById('modal-description').innerText = item.fullDesc;
+            document.getElementById('modal-tips').innerText = item.tips;
+
+            const mapBtn = document.getElementById('modal-map-btn');
+            mapBtn.onclick = () => {
+                closeModal();
+                focusOnLocation(item.lat, item.lng);
+            };
+
+            document.getElementById('destination-modal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            document.getElementById('destination-modal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        // --- FOOD SECTION TAB ---
+        function renderFoodSection() {
+            const tabList = document.getElementById('food-tab-list');
+            tabList.innerHTML = '';
+
+            foodData.forEach((food, index) => {
+                const btn = document.createElement('button');
+                btn.className = `w-full text-left p-4 rounded-2xl transition-all duration-300 flex items-center justify-between ${index === 0 ? 'bg-deepOcean text-white shadow-lg' : 'bg-white hover:bg-white/80 text-slate-700'}`;
+                btn.onclick = () => selectFoodTab(food.id, btn);
+                btn.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <div class="w-3 h-3 rounded-full ${index === 0 ? 'bg-cyanAccent' : 'bg-slate-300'}"></div>
+                        <span class="font-bold text-base md:text-lg">${food.name}</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-xs opacity-60"></i>
+                `;
+                tabList.appendChild(btn);
+            });
+
+            selectFoodTab(foodData[0].id);
+        }
+
+        function selectFoodTab(foodId, clickedBtn = null) {
+            if (clickedBtn) {
+                document.querySelectorAll('#food-tab-list button').forEach(b => {
+                    b.className = 'w-full text-left p-4 rounded-2xl transition-all duration-300 flex items-center justify-between bg-white hover:bg-white/80 text-slate-700';
+                    const dot = b.querySelector('.rounded-full');
+                    if (dot) dot.className = 'w-3 h-3 rounded-full bg-slate-300';
+                });
+                clickedBtn.className = 'w-full text-left p-4 rounded-2xl transition-all duration-300 flex items-center justify-between bg-deepOcean text-white shadow-lg';
+                const activeDot = clickedBtn.querySelector('.rounded-full');
+                if (activeDot) activeDot.className = 'w-3 h-3 rounded-full bg-cyanAccent';
+            }
+
+            const food = foodData.find(f => f.id === foodId);
+            const card = document.getElementById('food-display-card');
+
+            card.innerHTML = `
+                <div class="space-y-4">
+                    <span class="bg-cyan-100 text-deepOcean text-xs font-bold px-3 py-1 rounded-full uppercase">
+                        ${food.type}
+                    </span>
+                    <h4 class="text-3xl font-bold text-slate-800">${food.name}</h4>
+                    <p class="text-slate-600 text-base leading-relaxed">${food.desc}</p>
+                    
+                    <div class="border-t border-slate-100 pt-4 space-y-3">
+                        <div class="flex items-start">
+                            <i class="fa-solid fa-utensils text-skyBlue mt-1 mr-3 shrink-0"></i>
+                            <div>
+                                <strong class="text-xs text-slate-400 block uppercase">วัตถุดิบสำคัญ</strong>
+                                <span class="text-sm text-slate-700">${food.ingredients}</span>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <i class="fa-solid fa-map-pin text-red-500 mt-1 mr-3 shrink-0"></i>
+                            <div>
+                                <strong class="text-xs text-slate-400 block uppercase">พิกัดร้านเด็ดแนะนำ</strong>
+                                <span class="text-sm text-slate-700">${food.location}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="focusOnLocation(${food.lat}, ${food.lng})" class="mt-2 bg-skyBlue hover:bg-cyan-600 text-white font-medium px-5 py-2.5 rounded-xl text-xs transition-colors flex items-center gap-2">
+                        <i class="fa-solid fa-map-location-dot"></i>
+                        <span>ดูพิกัดร้านบนแผนที่</span>
+                    </button>
+                </div>
+            `;
+        }
+
+        // --- TRIP PLANNER GENERATOR LOGIC ---
+        function generateTripPlan() {
+            const days = document.getElementById('plan-days').value;
+            const style = document.getElementById('plan-style').value;
+            const budget = document.getElementById('plan-budget').value;
+            const resultCard = document.getElementById('trip-plan-result');
+
+            let budgetEst = '4,500 - 6,500 บาท/คน';
+            if (budget === 'economy') budgetEst = '3,000 - 4,500 บาท/คน';
+            if (budget === 'luxury') budgetEst = '12,000 - 25,000+ บาท/คน';
+
+            let itineraryHTML = `
+                <div class="mb-4 border-b border-slate-100 pb-3">
+                    <div class="flex items-center space-x-2 text-skyBlue font-bold mb-1">
+                        <i class="fa-solid fa-calendar-day"></i>
+                        <span>วันที่ 1: เช็คอิน & สัมผัสเสน่ห์เมืองเก่า</span>
+                    </div>
+                    <p class="text-xs sm:text-sm text-slate-600">เดินถ่ายรูปย่านเมืองเก่า ถนนถลาง ชิมหมูฮ้อง และชมพระอาทิตย์ตกที่แหลมพรหมเทพ</p>
+                </div>
+            `;
+
+            if (days >= 2) {
+                itineraryHTML += `
+                    <div class="mb-4 border-b border-slate-100 pb-3">
+                        <div class="flex items-center space-x-2 text-skyBlue font-bold mb-1">
+                            <i class="fa-solid fa-calendar-day"></i>
+                            <span>วันที่ 2: ทะเล & กิจกรรมทางน้ำ</span>
+                        </div>
+                        <p class="text-xs sm:text-sm text-slate-600">นั่งสปีดโบ๊ทไปเกาะราชา/เกาะเฮ ดำน้ำชมปะการัง และพักผ่อนชายหาดป่าตอง</p>
+                    </div>
+                `;
+            }
+
+            if (days >= 3) {
+                itineraryHTML += `
+                    <div class="mb-4 border-b border-slate-100 pb-3">
+                        <div class="flex items-center space-x-2 text-skyBlue font-bold mb-1">
+                            <i class="fa-solid fa-calendar-day"></i>
+                            <span>วันที่ 3: วัฒนธรรม & จุดชมวิว</span>
+                        </div>
+                        <p class="text-xs sm:text-sm text-slate-600">สักการะวัดฉลอง ถ่ายรูปจุดชมวิวสามหาด และซื้อของฝากเต้าส้อ/น้ำพริกกุ้งเสียบ</p>
+                    </div>
+                `;
+            }
+
+            resultCard.innerHTML = `
+                <div class="space-y-4">
+                    <div class="flex justify-between items-start border-b border-slate-200 pb-3">
+                        <div>
+                            <span class="text-xs font-bold text-skyBlue uppercase">YOUR CUSTOM ITINERARY</span>
+                            <h4 class="text-2xl font-bold text-slate-800">แผนการเดินทางของคุณ</h4>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xs text-slate-400 block">ประมาณการงบประมาณ</span>
+                            <span class="text-lg font-bold text-deepOcean">${budgetEst}</span>
+                        </div>
+                    </div>
+                    <div class="py-2 custom-scrollbar max-h-[300px] overflow-y-auto">
+                        ${itineraryHTML}
+                    </div>
+                </div>
+            `;
+        }
+
+        function executeHeroSearch() {
+            const query = document.getElementById('hero-search').value.trim();
+            if (query) {
+                document.getElementById('destinations').scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        function handleNewsletter(e) {
+            e.preventDefault();
+            alert('ขอบคุณสำหรับการสมัครรับข่าวสารจาก สัมผัสมนต์เสน่ห์ภูเก็ต!');
+            e.target.reset();
+        }
+
+        // DOM Ready Initializer
+        document.addEventListener('DOMContentLoaded', () => {
+            const mobileBtn = document.getElementById('mobile-menu-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const menuIcon = document.getElementById('menu-icon');
+
+            mobileBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+                menuIcon.className = mobileMenu.classList.contains('hidden') ? 'fa-solid fa-bars text-2xl' : 'fa-solid fa-xmark text-2xl';
+            });
+
+            document.querySelectorAll('.mobile-link').forEach(link => {
+                link.addEventListener('click', () => {
+                    mobileMenu.classList.add('hidden');
+                    menuIcon.className = 'fa-solid fa-bars text-2xl';
+                });
+            });
+
+            // Init Map & Components
+            initMap();
+            renderDestinations();
+            renderFoodSection();
+            generateTripPlan();
+            calculateRoute();
+        });
+    </script>
+</body>
+</html>
